@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="pl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Пошук рамки і сітки</title>
+  <title>Szukaj ramy i kraty</title>
   <style>
     :root {
       --paper: #e4dccb;
@@ -107,11 +107,6 @@
       outline: 2px solid var(--rust);
       outline-offset: 1px;
       border-color: var(--rust);
-    }
-
-    input::placeholder {
-      color: #b4a48c;
-      font-weight: 500;
     }
 
     input::placeholder {
@@ -326,40 +321,40 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Пошук рамки і сітки</h1>
-      <p class="lede">Введіть дві сторони в міліметрах. Сторінка порівняє їх із таблицею Wrocław і покаже код, наприклад рамка 13A. Рамка — це kątownik, сітка — profil. Порядок сторін не важливий.</p>
+      <h1>Szukaj ramy i kraty</h1>
+      <p class="lede">Wpisz dwa wymiary w milimetrach. Strona porówna je z tabelą Wrocław i pokaże kod, np. rama 13A. Rama to kątownik, krata to profil. Kolejność boków nie ma znaczenia.</p>
     </header>
 
     <div class="sheet">
       <form id="search" autocomplete="off">
         <div class="fields">
-          <label>Ширина, мм
+          <label>Szerokość, mm
             <input id="width" inputmode="decimal" enterkeyhint="search" placeholder="1000">
           </label>
-          <label>Висота, мм
+          <label>Wysokość, mm
             <input id="height" inputmode="decimal" enterkeyhint="search" placeholder="770">
           </label>
-          <label>Допуск ±, мм
+          <label>Tolerancja ±, mm
             <input id="tol" inputmode="decimal" value="5">
           </label>
         </div>
         <div class="row">
-          <div class="kinds" role="group" aria-label="Що шукати">
-            <button type="button" data-kind="all" aria-pressed="true">Усе</button>
-            <button type="button" data-kind="ramka" aria-pressed="false">Тільки рамки</button>
-            <button type="button" data-kind="sitka" aria-pressed="false">Тільки сітки</button>
+          <div class="kinds" role="group" aria-label="Co szukać">
+            <button type="button" data-kind="all" aria-pressed="true">Wszystko</button>
+            <button type="button" data-kind="ramka" aria-pressed="false">Tylko ramy</button>
+            <button type="button" data-kind="sitka" aria-pressed="false">Tylko kraty</button>
           </div>
-          <button class="find" type="submit">Знайти</button>
+          <button class="find" type="submit">Szukaj</button>
         </div>
-        <label>Або відкрити код
+        <label>Albo otwórz kod
           <input id="code" inputmode="text" placeholder="13A" autocapitalize="characters">
         </label>
         <div class="examples">
-          <span>Спробувати</span>
+          <span>Spróbuj</span>
           <button type="button" data-example="1494x772">1494 × 772</button>
           <button type="button" data-example="1000x770">1000 × 770</button>
           <button type="button" data-example="1416x680">1416 × 680</button>
-          <button type="button" class="ghost" id="reset">Скинути</button>
+          <button type="button" class="ghost" id="reset">Wyczyść</button>
         </div>
       </form>
     </div>
@@ -367,16 +362,16 @@
     <div id="results" aria-live="polite"></div>
 
     <details id="catalog">
-      <summary>Уся таблиця, літери A–K</summary>
+      <summary>Cała tabela, litery A–K</summary>
       <div id="catalog-body"></div>
     </details>
 
     <footer>
-      <p>Дані з файлу «Wymiary krat Wrocław.xlsx». Код 13A — це колонка 13 і ряд A. Заповнені номери 9–28 і літери A–K. Номери 6–8 і 29–32 у шапці є, але без розмірів.</p>
-      <p>У трьох рамках ряду E (24E, 25E, 28E) у файлі записано 13023×798. Це 13 метрів і не сходиться з сіткою 935×710, тож у пошуку стоїть 1023×798.</p>
+      <p>Dane z pliku «Wymiary krat Wrocław.xlsx». Kod 13A to kolumna 13 i wiersz A. Wypełnione numery 9–28 i litery A–K. Numery 6–8 oraz 29–32 są w nagłówku, ale bez wymiarów.</p>
+      <p>W trzech ramach wiersza E (24E, 25E, 28E) w pliku jest 13023×798. To 13 metrów i nie pasuje do profilu 935×710, więc w wyszukiwaniu jest 1023×798.</p>
     </footer>
   </div>
-  <noscript>Потрібен JavaScript: порівняння розмірів іде у браузері.</noscript>
+  <noscript>Potrzebny jest JavaScript: porównanie wymiarów działa w przeglądarce.</noscript>
   <script src="data.js"></script>
   <script>
     const widthEl = document.getElementById("width");
@@ -415,15 +410,11 @@
     }
 
     function kindLabel(kind) {
-      return kind === "ramka" ? "Рамка" : "Сітка";
+      return kind === "ramka" ? "Rama" : "Krata";
     }
 
     function codesWord(count) {
-      const mod10 = count % 10;
-      const mod100 = count % 100;
-      if (mod10 === 1 && mod100 !== 11) return "код";
-      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "коди";
-      return "кодів";
+      return count === 1 ? "kod" : "kody";
     }
 
     function currentKind() {
@@ -440,7 +431,7 @@
         return { code: String(num) + letter };
       }
       if (/^\d{1,2}$/.test(text) || /^[A-K]$/.test(text)) return null;
-      return { error: "Код має вигляд 13A: номер колонки і літера ряду A–K." };
+      return { error: "Kod ma wyglądać jak 13A: numer kolumny i litera wiersza A–K." };
     }
 
     function orient(item, width, height, tol) {
@@ -488,15 +479,15 @@
 
     function sidePhrase(diff, name) {
       const value = Math.round(Math.abs(diff) * 10) / 10;
-      if (value === 0) return name + " збігається";
-      const word = name === "ширина" ? (diff > 0 ? "більша" : "менша") : (diff > 0 ? "більша" : "менша");
-      return name + " у таблиці на " + fmt(value) + " мм " + word;
+      if (value === 0) return name + " się zgadza";
+      const word = diff > 0 ? "większa" : "mniejsza";
+      return name + " w tabeli o " + fmt(value) + " mm " + word;
     }
 
     function deltaText(dw, dh) {
-      if (Math.abs(dw) < 0.05 && Math.abs(dh) < 0.05) return "Точний збіг із таблицею.";
-      const width = sidePhrase(dw, "ширина");
-      const height = sidePhrase(dh, "висота");
+      if (Math.abs(dw) < 0.05 && Math.abs(dh) < 0.05) return "Dokładne dopasowanie do tabeli.";
+      const width = sidePhrase(dw, "szerokość");
+      const height = sidePhrase(dh, "wysokość");
       return width.charAt(0).toUpperCase() + width.slice(1) + ", " + height + ".";
     }
 
@@ -515,35 +506,35 @@
         if (!best || score < best.score) best = { dw, dh, score };
       }
       if (best.score <= 30) return null;
-      return "У файлі рамка " + ram.w + "×" + ram.h + " і сітка " + sit.w + "×" + sit.h
-        + " розходяться на " + best.dw + "×" + best.dh + " мм, а не на звичні 88×88.";
+      return "W pliku rama " + ram.w + "×" + ram.h + " i krata " + sit.w + "×" + sit.h
+        + " różnią się o " + best.dw + "×" + best.dh + " mm, a nie o zwykłe 88×88.";
     }
 
     function pairText(items) {
-      const other = items[0].kind === "ramka" ? "Сітка" : "Рамка";
+      const other = items[0].kind === "ramka" ? "Krata" : "Rama";
       const lines = items.map((item) => {
         const rec = byCode.get(item.code);
         const pair = rec && rec[item.kind === "ramka" ? "sitka" : "ramka"];
         return {
           code: item.code,
-          text: pair ? pair.w + "×" + pair.h : "немає в таблиці"
+          text: pair ? pair.w + "×" + pair.h : "brak w tabeli"
         };
       });
       const unique = new Set(lines.map((line) => line.text));
-      if (unique.size === 1) return other + " цих кодів: " + lines[0].text + " мм.";
+      if (unique.size === 1) return other + " tych kodów: " + lines[0].text + " mm.";
       return lines.map((line) => line.code + " — " + other.toLowerCase() + " " + line.text).join(". ") + ".";
     }
 
     function renderGroup(group, outside) {
       const card = el("article", "hit " + group.item.kind + (outside ? " outside" : ""));
-      const tag = el("div", "tag", outside ? "Поза допуском" : kindLabel(group.item.kind));
+      const tag = el("div", "tag", outside ? "Poza tolerancją" : kindLabel(group.item.kind));
       const title = el("h2", null, kindLabel(group.item.kind) + " " + group.items.map((item) => item.code).join(", "));
       const size = el("p", "size");
       size.append(document.createTextNode(group.item.w + " × " + group.item.h + " "));
-      size.append(el("span", null, "мм"));
+      size.append(el("span", null, "mm"));
       card.append(tag, title, size, el("p", "delta", deltaText(group.dw, group.dh)));
       if (group.swapped) {
-        card.append(el("p", "orient", "Сторони зіставлені навхрест: у таблиці записано " + group.item.w + "×" + group.item.h + "."));
+        card.append(el("p", "orient", "Boki dopasowano na krzyż: w tabeli jest " + group.item.w + "×" + group.item.h + "."));
       }
       card.append(el("p", "pair", pairText(group.items)));
       const notes = [...new Set(group.items.map((item) => item.note).filter(Boolean))];
@@ -575,8 +566,8 @@
         if (otherHits.length) {
           const banner = el("p", "other");
           const names = otherHits.slice(0, 8).map((group) => group.items.map((item) => item.code).join(", ")).join("; ");
-          banner.append(el("span", null, "У цьому типі збігу немає, але в допуску є " + kindLabel(otherKind).toLowerCase() + ": " + names + "."));
-          const button = el("button", "ghost", "Показати");
+          banner.append(el("span", null, "W tym typie nic nie pasuje, ale w tolerancji jest " + kindLabel(otherKind).toLowerCase() + ": " + names + "."));
+          const button = el("button", "ghost", "Pokaż");
           button.type = "button";
           button.addEventListener("click", () => {
             for (const node of kindBar.querySelectorAll("button")) {
@@ -592,19 +583,19 @@
       if (hits.length) {
         const shown = hits.slice(0, 40);
         const foundCount = shown.reduce((sum, group) => sum + group.items.length, 0);
-        results.append(el("h2", "section-title", "У допуску ±" + fmt(tol) + " мм: " + foundCount + " " + codesWord(foundCount)));
+        results.append(el("h2", "section-title", "W tolerancji ±" + fmt(tol) + " mm: " + foundCount + " " + codesWord(foundCount)));
         for (const group of shown) results.append(renderGroup(group, false));
         if (hits.length > 40) {
-          results.append(el("p", "msg", "Показано найближчі 40 груп. Зменшіть допуск, якщо список задовгий."));
+          results.append(el("p", "msg", "Pokazano najbliższe 40 grup. Zmniejsz tolerancję, jeśli lista jest za długa."));
         }
         return;
       }
 
       const nearest = groupHits(rows).slice(0, 6);
-      const banner = el("p", "outside-banner", "У допуску ±" + fmt(tol) + " мм нічого немає. Нижче найближчі розміри з таблиці, вони в допуск не входять.");
+      const banner = el("p", "outside-banner", "W tolerancji ±" + fmt(tol) + " mm nic nie ma. Poniżej najbliższe wymiary z tabeli — nie mieszczą się w tolerancji.");
       results.append(banner);
       if (nearest.length && nearest[0].dev > 40) {
-        results.append(el("p", "msg", "Навіть найближчий розмір далеко від цього заміру."));
+        results.append(el("p", "msg", "Nawet najbliższy wymiar jest daleko od tego pomiaru."));
       }
       for (const group of nearest) results.append(renderGroup(group, true));
     }
@@ -613,7 +604,7 @@
       const rec = byCode.get(code);
       results.replaceChildren();
       if (!rec) {
-        results.append(el("p", "msg", "Коду " + code + " у таблиці немає. Є номери 9–28 і літери A–K."));
+        results.append(el("p", "msg", "Kodu " + code + " nie ma w tabeli. Są numery 9–28 i litery A–K."));
         return;
       }
       const card = el("article", "spec");
@@ -623,7 +614,7 @@
         if (!item) continue;
         const line = el("p", "size");
         line.append(document.createTextNode(kindLabel(kind) + "  " + item.w + " × " + item.h + " "));
-        line.append(el("span", null, "мм"));
+        line.append(el("span", null, "mm"));
         card.append(line);
         if (item.note) card.append(el("p", "note", item.note));
       }
@@ -633,12 +624,12 @@
     }
 
     function hint() {
-      return el("p", "hint", "Введіть ширину і висоту. Допуск за замовчуванням ±5 мм: підійде розмір, у якого кожна сторона відрізняється не більше ніж на це число.");
+      return el("p", "hint", "Wpisz szerokość i wysokość. Domyślna tolerancja ±5 mm: pasuje wymiar, którego każdy bok różni się najwyżej o tę wartość.");
     }
 
     function run() {
       if (!window.KRATY) {
-        results.replaceChildren(el("p", "msg", "База розмірів не завантажилась."));
+        results.replaceChildren(el("p", "msg", "Baza wymiarów się nie wczytała."));
         return;
       }
       const parsed = interpretCode(codeEl.value);
@@ -655,7 +646,7 @@
       const tolRaw = parseMm(tolEl.value);
       const tol = tolRaw == null ? 5 : tolRaw;
       if (Number.isNaN(width) || Number.isNaN(height) || Number.isNaN(tolRaw)) {
-        results.replaceChildren(el("p", "msg", "Вводьте розмір цифрами, наприклад 1000."));
+        results.replaceChildren(el("p", "msg", "Wpisz wymiar cyframi, np. 1000."));
         return;
       }
       if (width == null && height == null) {
@@ -663,15 +654,15 @@
         return;
       }
       if (width == null || height == null) {
-        results.replaceChildren(el("p", "msg", "Потрібні обидві сторони: ширина і висота."));
+        results.replaceChildren(el("p", "msg", "Potrzebne są oba boki: szerokość i wysokość."));
         return;
       }
       if (width <= 0 || height <= 0) {
-        results.replaceChildren(el("p", "msg", "Розмір має бути більший за нуль."));
+        results.replaceChildren(el("p", "msg", "Wymiar musi być większy od zera."));
         return;
       }
       if (tol < 0) {
-        results.replaceChildren(el("p", "msg", "Допуск не може бути від’ємним."));
+        results.replaceChildren(el("p", "msg", "Tolerancja nie może być ujemna."));
         return;
       }
       renderSearch(width, height, tol, currentKind());
@@ -682,11 +673,11 @@
       if (body.childElementCount || !window.KRATY) return;
       const letters = [...new Set(KRATY.map((item) => item.letter))];
       for (const letter of letters) {
-        body.append(el("h3", "letter", "Ряд " + letter));
+        body.append(el("h3", "letter", "Wiersz " + letter));
         const wrap = el("div", "table-wrap");
         const table = document.createElement("table");
         const head = document.createElement("tr");
-        for (const label of ["Код", "Рамка, мм", "Сітка, мм"]) head.append(el("th", null, label));
+        for (const label of ["Kod", "Rama, mm", "Krata, mm"]) head.append(el("th", null, label));
         const thead = document.createElement("thead");
         thead.append(head);
         const tbody = document.createElement("tbody");
