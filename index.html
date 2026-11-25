@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Пошук рамки і сітки</title>
+  <style>
+    :root {
+      --paper: #e4dccb;
+      --ink: #1c1916;
+      --muted: #5c5348;
+      --card: #fbf7f1;
+      --line: #d3c6b2;
+      --rust: #8a3b22;
+      --rust-soft: #f6e6dc;
+      --pine: #1b463c;
+      --pine-soft: #e5f0eb;
+      --warn: #7a4e10;
+      --warn-soft: #f8efd8;
+      --shadow: 0 16px 40px rgba(60, 42, 22, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font: 17px/1.45 "Segoe UI", "Helvetica Neue", sans-serif;
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(rgba(90, 68, 36, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(90, 68, 36, 0.045) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+
+    .wrap {
+      width: min(920px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 32px 0 64px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-family: Georgia, "Palatino Linotype", Palatino, serif;
+      font-size: clamp(2rem, 5vw, 3.1rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 0.95;
+    }
+
+    .lede {
+      max-width: 62ch;
+      margin: 0 0 22px;
+      color: var(--muted);
+    }
+
+    .sheet {
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      position: relative;
+    }
+
+    .sheet::before,
+    .sheet::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-color: var(--rust);
+      border-style: solid;
+    }
+
+    .sheet::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+    .sheet::after { right: 8px; bottom: 8px; border-width: 0 2px 2px 0; }
+
+    form { display: grid; gap: 14px; }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.72fr;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    input {
+      width: 100%;
+      height: 58px;
+      padding: 0 14px;
+      border: 1.5px solid #c9bba6;
+      background: #fffdf9;
+      color: var(--ink);
+      font: 600 1.45rem/1 "Segoe UI", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input:focus {
+      outline: 2px solid var(--rust);
+      outline-offset: 1px;
+      border-color: var(--rust);
+    }
+
+    input::placeholder {
+      color: #b4a48c;
+      font-weight: 500;
+    }
+
+    input::placeholder {
+      color: #b4a48c;
+      font-weight: 500;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .kinds button,
+    .ghost,
+    .examples button,
+    .codebtn {
+      border: 1.5px solid #c9bba6;
+      background: transparent;
+      color: var(--ink);
+      font: 600 0.95rem/1 "Segoe UI", sans-serif;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .kinds button[aria-pressed="true"] {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fbf7f1;
+    }
+
+    .find {
+      border: 0;
+      background: var(--rust);
+      color: #fffaf6;
+      font: 700 1rem/1 "Segoe UI", sans-serif;
+      padding: 14px 18px;
+      cursor: pointer;
+    }
+
+    .find:hover { background: #732f1b; }
+    .find:focus-visible,
+    .kinds button:focus-visible,
+    .ghost:focus-visible,
+    .examples button:focus-visible,
+    .codebtn:focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .examples button { padding: 7px 10px; font-size: 0.88rem; }
+
+    #results { margin-top: 22px; display: grid; gap: 12px; }
+
+    .msg, .hint {
+      margin: 0;
+      padding: 16px 18px;
+      background: rgba(255, 253, 249, 0.72);
+      border: 1px dashed #c9bba6;
+    }
+
+    .section-title {
+      margin: 8px 0 0;
+      font-size: 1.05rem;
+    }
+
+    .hit, .spec {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 7px solid var(--pine);
+      padding: 16px 18px 14px;
+    }
+
+    .hit.ramka, .spec { border-left-color: var(--rust); }
+    .hit.sitka { border-left-color: var(--pine); }
+    .hit.outside { border-left-color: var(--warn); background: #fffdf8; }
+
+    .hit h2, .spec h2 {
+      margin: 0 0 4px;
+      font-family: Georgia, "Palatino Linotype", Palatino, serif;
+      font-size: clamp(1.55rem, 3vw, 2.15rem);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .hit.ramka h2 { color: var(--rust); }
+    .hit.sitka h2 { color: var(--pine); }
+
+    .size {
+      margin: 6px 0;
+      font-size: 1.65rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .size span { font-size: 1rem; font-weight: 600; color: var(--muted); }
+
+    .delta, .pair, .orient, .note, .warn {
+      margin: 4px 0;
+    }
+
+    .delta, .pair, .orient { color: var(--ink); }
+    .note { color: var(--warn); }
+    .warn {
+      color: var(--warn);
+      background: var(--warn-soft);
+      padding: 8px 10px;
+    }
+
+    .outside-banner {
+      margin: 0;
+      padding: 12px 14px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      border: 1px solid #ead7ae;
+    }
+
+    .other {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin: 0;
+      padding: 12px 14px;
+      background: var(--pine-soft);
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 6px;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: var(--rust-soft);
+      color: var(--rust);
+    }
+
+    .hit.sitka .tag { background: var(--pine-soft); color: var(--pine); }
+    .hit.outside .tag { background: var(--warn-soft); color: var(--warn); }
+
+    details {
+      margin-top: 28px;
+      background: rgba(251, 247, 241, 0.88);
+      border: 1px solid var(--line);
+      padding: 12px 16px 16px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .letter {
+      margin: 18px 0 8px;
+      font-family: Georgia, serif;
+      font-size: 1.4rem;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-variant-numeric: tabular-nums;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    th { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
+
+    .codebtn {
+      padding: 4px 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    footer {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer p { margin: 0 0 8px; }
+
+    @media (max-width: 700px) {
+      .fields { grid-template-columns: 1fr; }
+      .wrap { width: min(100% - 16px, 920px); padding-top: 18px; }
+      .sheet { padding: 16px; }
+      input { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Пошук рамки і сітки</h1>
+      <p class="lede">Введіть дві сторони в міліметрах. Сторінка порівняє їх із таблицею Wrocław і покаже код, наприклад рамка 13A. Рамка — це kątownik, сітка — profil. Порядок сторін не важливий.</p>
+    </header>
+
+    <div class="sheet">
+      <form id="search" autocomplete="off">
+        <div class="fields">
+          <label>Ширина, мм
+            <input id="width" inputmode="decimal" enterkeyhint="search" placeholder="1000">
+          </label>
+          <label>Висота, мм
+            <input id="height" inputmode="decimal" enterkeyhint="search" placeholder="770">
+          </label>
+          <label>Допуск ±, мм
+            <input id="tol" inputmode="decimal" value="5">
+          </label>
+        </div>
+        <div class="row">
+          <div class="kinds" role="group" aria-label="Що шукати">
+            <button type="button" data-kind="all" aria-pressed="true">Усе</button>
+            <button type="button" data-kind="ramka" aria-pressed="false">Тільки рамки</button>
+            <button type="button" data-kind="sitka" aria-pressed="false">Тільки сітки</button>
+          </div>
+          <button class="find" type="submit">Знайти</button>
+        </div>
+        <label>Або відкрити код
+          <input id="code" inputmode="text" placeholder="13A" autocapitalize="characters">
+        </label>
+        <div class="examples">
+          <span>Спробувати</span>
+          <button type="button" data-example="1494x772">1494 × 772</button>
+          <button type="button" data-example="1000x770">1000 × 770</button>
+          <button type="button" data-example="1416x680">1416 × 680</button>
+          <button type="button" class="ghost" id="reset">Скинути</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="results" aria-live="polite"></div>
+
+    <details id="catalog">
+      <summary>Уся таблиця, літери A–K</summary>
+      <div id="catalog-body"></div>
+    </details>
+
+    <footer>
+      <p>Дані з файлу «Wymiary krat Wrocław.xlsx». Код 13A — це колонка 13 і ряд A. Заповнені номери 9–28 і літери A–K. Номери 6–8 і 29–32 у шапці є, але без розмірів.</p>
+      <p>У трьох рамках ряду E (24E, 25E, 28E) у файлі записано 13023×798. Це 13 метрів і не сходиться з сіткою 935×710, тож у пошуку стоїть 1023×798.</p>
+    </footer>
+  </div>
+  <noscript>Потрібен JavaScript: порівняння розмірів іде у браузері.</noscript>
+  <script src="data.js"></script>
+  <script>
+    const widthEl = document.getElementById("width");
+    const heightEl = document.getElementById("height");
+    const tolEl = document.getElementById("tol");
+    const codeEl = document.getElementById("code");
+    const results = document.getElementById("results");
+    const kindBar = document.querySelector(".kinds");
+    const form = document.getElementById("search");
+
+    const byCode = new Map();
+    if (window.KRATY) {
+      for (const item of KRATY) {
+        if (!byCode.has(item.code)) byCode.set(item.code, {});
+        byCode.get(item.code)[item.kind] = item;
+      }
+    }
+
+    function el(tag, cls, text) {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    function parseMm(value) {
+      const text = String(value).trim().replace(",", ".");
+      if (!text) return null;
+      if (!/^\d+(\.\d+)?$/.test(text)) return NaN;
+      return Number(text);
+    }
+
+    function fmt(n) {
+      if (Number.isInteger(n)) return String(n);
+      return (Math.round(n * 10) / 10).toString();
+    }
+
+    function kindLabel(kind) {
+      return kind === "ramka" ? "Рамка" : "Сітка";
+    }
+
+    function codesWord(count) {
+      const mod10 = count % 10;
+      const mod100 = count % 100;
+      if (mod10 === 1 && mod100 !== 11) return "код";
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "коди";
+      return "кодів";
+    }
+
+    function currentKind() {
+      return kindBar.querySelector("button[aria-pressed='true']").dataset.kind;
+    }
+
+    function interpretCode(raw) {
+      const text = raw.trim().toUpperCase().replace(/\s+/g, "");
+      if (!text) return null;
+      const match = text.match(/^(\d{1,2})([A-K])$/) || text.match(/^([A-K])(\d{1,2})$/);
+      if (match) {
+        const num = /\d/.test(match[1]) ? Number(match[1]) : Number(match[2]);
+        const letter = /[A-K]/.test(match[1]) ? match[1] : match[2];
+        return { code: String(num) + letter };
+      }
+      if (/^\d{1,2}$/.test(text) || /^[A-K]$/.test(text)) return null;
+      return { error: "Код має вигляд 13A: номер колонки і літера ряду A–K." };
+    }
+
+    function orient(item, width, height, tol) {
+      const options = [
+        {
+          swapped: false,
+          dev: Math.abs(item.w - width) + Math.abs(item.h - height),
+          dw: item.w - width,
+          dh: item.h - height,
+          within: Math.abs(item.w - width) <= tol && Math.abs(item.h - height) <= tol
+        },
+        {
+          swapped: true,
+          dev: Math.abs(item.h - width) + Math.abs(item.w - height),
+          dw: item.h - width,
+          dh: item.w - height,
+          within: Math.abs(item.h - width) <= tol && Math.abs(item.w - height) <= tol
+        }
+      ];
+      const good = options.filter((option) => option.within).sort((a, b) => a.dev - b.dev);
+      if (good.length) return good[0];
+      options.sort((a, b) => a.dev - b.dev);
+      return options[0];
+    }
+
+    function codeOrder(a, b) {
+      const letter = a.letter.localeCompare(b.letter);
+      return letter || a.num - b.num;
+    }
+
+    function groupHits(rows) {
+      const groups = new Map();
+      for (const row of rows) {
+        const key = [row.item.kind, row.item.w, row.item.h, row.swapped ? 1 : 0].join("|");
+        if (!groups.has(key)) {
+          groups.set(key, { ...row, items: [] });
+        }
+        groups.get(key).items.push(row.item);
+      }
+      const list = [...groups.values()];
+      for (const group of list) group.items.sort(codeOrder);
+      list.sort((a, b) => a.dev - b.dev || codeOrder(a.items[0], b.items[0]));
+      return list;
+    }
+
+    function sidePhrase(diff, name) {
+      const value = Math.round(Math.abs(diff) * 10) / 10;
+      if (value === 0) return name + " збігається";
+      const word = name === "ширина" ? (diff > 0 ? "більша" : "менша") : (diff > 0 ? "більша" : "менша");
+      return name + " у таблиці на " + fmt(value) + " мм " + word;
+    }
+
+    function deltaText(dw, dh) {
+      if (Math.abs(dw) < 0.05 && Math.abs(dh) < 0.05) return "Точний збіг із таблицею.";
+      const width = sidePhrase(dw, "ширина");
+      const height = sidePhrase(dh, "висота");
+      return width.charAt(0).toUpperCase() + width.slice(1) + ", " + height + ".";
+    }
+
+    function mismatch(code) {
+      const rec = byCode.get(code);
+      if (!rec || !rec.ramka || !rec.sitka) return null;
+      const ram = rec.ramka;
+      const sit = rec.sitka;
+      const options = [
+        [ram.w - sit.w, ram.h - sit.h],
+        [ram.w - sit.h, ram.h - sit.w]
+      ];
+      let best = null;
+      for (const [dw, dh] of options) {
+        const score = Math.abs(dw - 88) + Math.abs(dh - 88);
+        if (!best || score < best.score) best = { dw, dh, score };
+      }
+      if (best.score <= 30) return null;
+      return "У файлі рамка " + ram.w + "×" + ram.h + " і сітка " + sit.w + "×" + sit.h
+        + " розходяться на " + best.dw + "×" + best.dh + " мм, а не на звичні 88×88.";
+    }
+
+    function pairText(items) {
+      const other = items[0].kind === "ramka" ? "Сітка" : "Рамка";
+      const lines = items.map((item) => {
+        const rec = byCode.get(item.code);
+        const pair = rec && rec[item.kind === "ramka" ? "sitka" : "ramka"];
+        return {
+          code: item.code,
+          text: pair ? pair.w + "×" + pair.h : "немає в таблиці"
+        };
+      });
+      const unique = new Set(lines.map((line) => line.text));
+      if (unique.size === 1) return other + " цих кодів: " + lines[0].text + " мм.";
+      return lines.map((line) => line.code + " — " + other.toLowerCase() + " " + line.text).join(". ") + ".";
+    }
+
+    function renderGroup(group, outside) {
+      const card = el("article", "hit " + group.item.kind + (outside ? " outside" : ""));
+      const tag = el("div", "tag", outside ? "Поза допуском" : kindLabel(group.item.kind));
+      const title = el("h2", null, kindLabel(group.item.kind) + " " + group.items.map((item) => item.code).join(", "));
+      const size = el("p", "size");
+      size.append(document.createTextNode(group.item.w + " × " + group.item.h + " "));
+      size.append(el("span", null, "мм"));
+      card.append(tag, title, size, el("p", "delta", deltaText(group.dw, group.dh)));
+      if (group.swapped) {
+        card.append(el("p", "orient", "Сторони зіставлені навхрест: у таблиці записано " + group.item.w + "×" + group.item.h + "."));
+      }
+      card.append(el("p", "pair", pairText(group.items)));
+      const notes = [...new Set(group.items.map((item) => item.note).filter(Boolean))];
+      for (const note of notes) card.append(el("p", "note", note));
+      const warns = [];
+      for (const item of group.items) {
+        const text = mismatch(item.code);
+        if (text && !warns.includes(item.code + ": " + text)) warns.push(item.code + ": " + text);
+      }
+      if (warns.length) card.append(el("p", "warn", warns.join(" ")));
+      return card;
+    }
+
+    function renderSearch(width, height, tol, kind) {
+      const rows = [];
+      for (const item of KRATY) {
+        if (kind !== "all" && item.kind !== kind) continue;
+        rows.push({ item, ...orient(item, width, height, tol) });
+      }
+      const hits = groupHits(rows.filter((row) => row.within));
+      results.replaceChildren();
+
+      if (!hits.length && kind !== "all") {
+        const otherKind = kind === "ramka" ? "sitka" : "ramka";
+        const otherHits = groupHits(KRATY
+          .filter((item) => item.kind === otherKind)
+          .map((item) => ({ item, ...orient(item, width, height, tol) }))
+          .filter((row) => row.within));
+        if (otherHits.length) {
+          const banner = el("p", "other");
+          const names = otherHits.slice(0, 8).map((group) => group.items.map((item) => item.code).join(", ")).join("; ");
+          banner.append(el("span", null, "У цьому типі збігу немає, але в допуску є " + kindLabel(otherKind).toLowerCase() + ": " + names + "."));
+          const button = el("button", "ghost", "Показати");
+          button.type = "button";
+          button.addEventListener("click", () => {
+            for (const node of kindBar.querySelectorAll("button")) {
+              node.setAttribute("aria-pressed", node.dataset.kind === otherKind ? "true" : "false");
+            }
+            run();
+          });
+          banner.append(button);
+          results.append(banner);
+        }
+      }
+
+      if (hits.length) {
+        const shown = hits.slice(0, 40);
+        const foundCount = shown.reduce((sum, group) => sum + group.items.length, 0);
+        results.append(el("h2", "section-title", "У допуску ±" + fmt(tol) + " мм: " + foundCount + " " + codesWord(foundCount)));
+        for (const group of shown) results.append(renderGroup(group, false));
+        if (hits.length > 40) {
+          results.append(el("p", "msg", "Показано найближчі 40 груп. Зменшіть допуск, якщо список задовгий."));
+        }
+        return;
+      }
+
+      const nearest = groupHits(rows).slice(0, 6);
+      const banner = el("p", "outside-banner", "У допуску ±" + fmt(tol) + " мм нічого немає. Нижче найближчі розміри з таблиці, вони в допуск не входять.");
+      results.append(banner);
+      if (nearest.length && nearest[0].dev > 40) {
+        results.append(el("p", "msg", "Навіть найближчий розмір далеко від цього заміру."));
+      }
+      for (const group of nearest) results.append(renderGroup(group, true));
+    }
+
+    function renderCode(code) {
+      const rec = byCode.get(code);
+      results.replaceChildren();
+      if (!rec) {
+        results.append(el("p", "msg", "Коду " + code + " у таблиці немає. Є номери 9–28 і літери A–K."));
+        return;
+      }
+      const card = el("article", "spec");
+      card.append(el("h2", null, code));
+      for (const kind of ["ramka", "sitka"]) {
+        const item = rec[kind];
+        if (!item) continue;
+        const line = el("p", "size");
+        line.append(document.createTextNode(kindLabel(kind) + "  " + item.w + " × " + item.h + " "));
+        line.append(el("span", null, "мм"));
+        card.append(line);
+        if (item.note) card.append(el("p", "note", item.note));
+      }
+      const warn = mismatch(code);
+      if (warn) card.append(el("p", "warn", warn));
+      results.append(card);
+    }
+
+    function hint() {
+      return el("p", "hint", "Введіть ширину і висоту. Допуск за замовчуванням ±5 мм: підійде розмір, у якого кожна сторона відрізняється не більше ніж на це число.");
+    }
+
+    function run() {
+      if (!window.KRATY) {
+        results.replaceChildren(el("p", "msg", "База розмірів не завантажилась."));
+        return;
+      }
+      const parsed = interpretCode(codeEl.value);
+      if (parsed && parsed.code) {
+        renderCode(parsed.code);
+        return;
+      }
+      if (parsed && parsed.error) {
+        results.replaceChildren(el("p", "msg", parsed.error));
+        return;
+      }
+      const width = parseMm(widthEl.value);
+      const height = parseMm(heightEl.value);
+      const tolRaw = parseMm(tolEl.value);
+      const tol = tolRaw == null ? 5 : tolRaw;
+      if (Number.isNaN(width) || Number.isNaN(height) || Number.isNaN(tolRaw)) {
+        results.replaceChildren(el("p", "msg", "Вводьте розмір цифрами, наприклад 1000."));
+        return;
+      }
+      if (width == null && height == null) {
+        results.replaceChildren(hint());
+        return;
+      }
+      if (width == null || height == null) {
+        results.replaceChildren(el("p", "msg", "Потрібні обидві сторони: ширина і висота."));
+        return;
+      }
+      if (width <= 0 || height <= 0) {
+        results.replaceChildren(el("p", "msg", "Розмір має бути більший за нуль."));
+        return;
+      }
+      if (tol < 0) {
+        results.replaceChildren(el("p", "msg", "Допуск не може бути від’ємним."));
+        return;
+      }
+      renderSearch(width, height, tol, currentKind());
+    }
+
+    function renderCatalog() {
+      const body = document.getElementById("catalog-body");
+      if (body.childElementCount || !window.KRATY) return;
+      const letters = [...new Set(KRATY.map((item) => item.letter))];
+      for (const letter of letters) {
+        body.append(el("h3", "letter", "Ряд " + letter));
+        const wrap = el("div", "table-wrap");
+        const table = document.createElement("table");
+        const head = document.createElement("tr");
+        for (const label of ["Код", "Рамка, мм", "Сітка, мм"]) head.append(el("th", null, label));
+        const thead = document.createElement("thead");
+        thead.append(head);
+        const tbody = document.createElement("tbody");
+        const nums = [...new Set(KRATY.filter((item) => item.letter === letter).map((item) => item.num))].sort((a, b) => a - b);
+        for (const num of nums) {
+          const code = String(num) + letter;
+          const rec = byCode.get(code);
+          const row = document.createElement("tr");
+          const codeCell = document.createElement("td");
+          const button = el("button", "codebtn", code);
+          button.type = "button";
+          button.addEventListener("click", () => {
+            codeEl.value = code;
+            run();
+            results.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+          codeCell.append(button);
+          row.append(codeCell);
+          for (const kind of ["ramka", "sitka"]) {
+            const cell = document.createElement("td");
+            const item = rec[kind];
+            cell.textContent = item.w + " × " + item.h;
+            if (item.note) {
+              const mark = el("sup", null, " *");
+              mark.title = item.note;
+              cell.append(mark);
+            }
+            row.append(cell);
+          }
+          tbody.append(row);
+        }
+        table.append(thead, tbody);
+        wrap.append(table);
+        body.append(wrap);
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      run();
+    });
+    form.addEventListener("input", run);
+    kindBar.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      for (const node of kindBar.querySelectorAll("button")) {
+        node.setAttribute("aria-pressed", node === button ? "true" : "false");
+      }
+      run();
+    });
+    for (const input of [widthEl, heightEl, tolEl, codeEl]) {
+      input.addEventListener("focus", () => input.select());
+    }
+    for (const button of document.querySelectorAll("[data-example]")) {
+      button.addEventListener("click", () => {
+        const [width, height] = button.dataset.example.split("x");
+        widthEl.value = width;
+        heightEl.value = height;
+        if (!tolEl.value.trim()) tolEl.value = "5";
+        codeEl.value = "";
+        run();
+      });
+    }
+    document.getElementById("reset").addEventListener("click", () => {
+      widthEl.value = "";
+      heightEl.value = "";
+      tolEl.value = "5";
+      codeEl.value = "";
+      run();
+    });
+    document.getElementById("catalog").addEventListener("toggle", (event) => {
+      if (event.target.open) renderCatalog();
+    });
+
+    run();
+  </script>
+</body>
+</html>
